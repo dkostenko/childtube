@@ -34,7 +34,7 @@
       position: relative;
       width: 100%;
       max-width: 640px;
-      margin: 20px auto;
+      margin: 20px auto 10px;
       background: #000;
       border-radius: 12px;
       overflow: hidden;
@@ -56,32 +56,41 @@
       height: 100%;
       background: transparent;
       z-index: 2;
-      pointer-events: auto;
+      pointer-events: auto; /* перехватывает все клики, ничего не делая */
     }
-    /* Кнопка полноэкранного режима */
-    #fullscreen-btn {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      width: 40px;
-      height: 40px;
-      background: rgba(0,0,0,0.6);
+    /* Панель управления (вне плеера) */
+    #controls-panel {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    .control-btn {
+      width: 50px;
+      height: 50px;
+      background: #4a90d9;
       color: white;
       border: none;
       border-radius: 50%;
-      font-size: 20px;
+      font-size: 24px;
       cursor: pointer;
-      z-index: 3;
-      pointer-events: auto;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: background 0.2s, transform 0.1s;
     }
-    #fullscreen-btn:hover { background: rgba(0,0,0,0.8); }
+    .control-btn:active { transform: scale(0.95); }
+    .control-btn:hover { background: #3a7bc8; }
+    /* Иконки (можно заменить на SVG при желании) */
+    #play-pause-btn::before {
+      content: "⏸"; /* по умолчанию пауза, меняется из JS */
+    }
     #fullscreen-btn::before {
       content: "⛶";
-      font-size: 22px;
     }
     #video-grid {
       display: grid;
@@ -122,7 +131,12 @@
   <div id="player-container">
     <div id="player"></div>
     <div id="player-overlay"></div>
-    <button id="fullscreen-btn" aria-label="Полноэкранный режим"></button>
+  </div>
+
+  <!-- Внешняя панель управления -->
+  <div id="controls-panel">
+    <button id="play-pause-btn" class="control-btn" aria-label="Пауза/воспроизведение"></button>
+    <button id="fullscreen-btn" class="control-btn" aria-label="Полноэкранный режим"></button>
   </div>
 
   <div id="video-grid"></div>
@@ -142,6 +156,7 @@
 
     let player;
     let pendingVideoId = null;
+    const playPauseBtn = document.getElementById('play-pause-btn');
 
     // Рендер сетки видео
     function renderGrid() {
@@ -181,7 +196,7 @@
           playsinline: 1,     // воспроизведение внутри страницы (iOS)
           disablekb: 1,       // отключить клавиатуру
           iv_load_policy: 3,  // скрыть аннотации
-          fs: 1,              // разрешить полноэкранный режим (нужен для нашей кнопки)
+          fs: 1,              // разрешить полноэкранный режим (для нашей кнопки)
         },
         events: {
           onReady: function(event) {
@@ -190,9 +205,38 @@
               player.playVideo();
               pendingVideoId = null;
             }
+            updatePlayPauseIcon();
+          },
+          onStateChange: function(event) {
+            updatePlayPauseIcon();
           }
         }
       });
+    }
+
+    // Обновление иконки Play/Pause в зависимости от состояния плеера
+    function updatePlayPauseIcon() {
+      if (!player || !player.getPlayerState) return;
+      const state = player.getPlayerState();
+      // 1 = воспроизводится, 2 = пауза, 0 = завершено, 5 = буфер
+      if (state === 1) {
+        playPauseBtn.style.setProperty('--icon', '"⏸"');
+        playPauseBtn.innerHTML = '⏸';
+      } else {
+        playPauseBtn.style.setProperty('--icon', '"▶"');
+        playPauseBtn.innerHTML = '▶';
+      }
+    }
+
+    // Переключение воспроизведения/паузы
+    function togglePlayPause() {
+      if (!player || !player.getPlayerState) return;
+      const state = player.getPlayerState();
+      if (state === 1) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
     }
 
     // Полноэкранный режим через YouTube API
@@ -202,32 +246,28 @@
         return;
       }
 
-      // Пытаемся использовать методы YouTube API
       try {
-        // Стандартный метод YouTube API
         if (player.m && typeof player.m.getFullscreen === 'function') {
           player.m.getFullscreen();
           return;
         }
-        // Для Safari: вызов webkitEnterFullscreen на iframe
         const iframe = player.getIframe();
         if (iframe.webkitEnterFullscreen) {
           iframe.webkitEnterFullscreen();
           return;
         }
-        // Фолбэк: стандартный Fullscreen API на iframe
         if (iframe.requestFullscreen) {
           iframe.requestFullscreen();
           return;
         }
-        // Если ничего не сработало
         alert('Полноэкранный режим не поддерживается на этом устройстве.');
       } catch (e) {
         alert('Ошибка при попытке открыть полноэкранный режим: ' + e.message);
       }
     }
 
-    // Привязка кнопки полноэкранного режима
+    // Привязка кнопок
+    document.getElementById('play-pause-btn').addEventListener('click', togglePlayPause);
     document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
 
     // Инициализация
