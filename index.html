@@ -193,7 +193,7 @@
           controls: 0,        // скрыть все контролы YouTube
           rel: 0,             // не показывать похожие видео в конце
           modestbranding: 1,  // минимальный брендинг
-          playsinline: 1,     // воспроизведение внутри страницы (iOS)
+          playsinline: 0,     // <-- ИЗМЕНЕНО: разрешаем полноэкранный режим
           disablekb: 1,       // отключить клавиатуру
           iv_load_policy: 3,  // скрыть аннотации
           fs: 1,              // разрешить полноэкранный режим (для нашей кнопки)
@@ -220,10 +220,8 @@
       const state = player.getPlayerState();
       // 1 = воспроизводится, 2 = пауза, 0 = завершено, 5 = буфер
       if (state === 1) {
-        playPauseBtn.style.setProperty('--icon', '"⏸"');
         playPauseBtn.innerHTML = '⏸';
       } else {
-        playPauseBtn.style.setProperty('--icon', '"▶"');
         playPauseBtn.innerHTML = '▶';
       }
     }
@@ -247,22 +245,21 @@
       }
 
       try {
+        // Пытаемся использовать YouTube API
         if (player.m && typeof player.m.getFullscreen === 'function') {
           player.m.getFullscreen();
           return;
         }
+        // Fallback для Safari/iOS
         const iframe = player.getIframe();
         if (iframe.webkitEnterFullscreen) {
           iframe.webkitEnterFullscreen();
           return;
         }
-        if (iframe.requestFullscreen) {
-          iframe.requestFullscreen();
-          return;
-        }
-        alert('Полноэкранный режим не поддерживается на этом устройстве.');
+        // Если ничего не сработало – сообщаем
+        alert('Полноэкранный режим не поддерживается.');
       } catch (e) {
-        alert('Ошибка при попытке открыть полноэкранный режим: ' + e.message);
+        alert('Ошибка: ' + e.message);
       }
     }
 
