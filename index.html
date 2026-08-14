@@ -56,7 +56,7 @@
       height: 100%;
       background: transparent;
       z-index: 2;
-      pointer-events: auto; /* перехватывает все клики, ничего не делая */
+      pointer-events: auto;
     }
     /* Панель управления (вне плеера) */
     #controls-panel {
@@ -85,10 +85,6 @@
     }
     .control-btn:active { transform: scale(0.95); }
     .control-btn:hover { background: #3a7bc8; }
-    /* Иконка для полноэкранной кнопки (оставлена) */
-    #fullscreen-btn::before {
-      content: "⛶";
-    }
     #video-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -234,32 +230,8 @@
       }
     }
 
-    // Полноэкранный режим через YouTube API
-    function toggleFullscreen() {
-      if (!player || !player.getIframe) {
-        alert('Плеер ещё не готов');
-        return;
-      }
-
-      try {
-        if (player.m && typeof player.m.getFullscreen === 'function') {
-          player.m.getFullscreen();
-          return;
-        }
-        const iframe = player.getIframe();
-        if (iframe.webkitEnterFullscreen) {
-          iframe.webkitEnterFullscreen();
-          return;
-        }
-        alert('Полноэкранный режим не поддерживается.');
-      } catch (e) {
-        alert('Ошибка: ' + e.message);
-      }
-    }
-
-    // Привязка кнопок
+    // Привязка кнопки Play/Pause
     document.getElementById('play-pause-btn').addEventListener('click', togglePlayPause);
-    document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
 
     // Инициализация
     renderGrid();
