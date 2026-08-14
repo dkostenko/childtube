@@ -11,6 +11,9 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      overscroll-behavior: none; /* отключаем резиновый скролл */
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f5f7fa;
@@ -236,12 +239,9 @@
     // Инициализация
     renderGrid();
 
-    // Регистрация Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
-      });
-    }
+    // Service worker отключён намеренно, чтобы не было проблем с кешированием.
+    // Если вы ранее устанавливали приложение со старым service worker, удалите ярлык
+    // с главного экрана и добавьте заново, либо очистите данные сайта в Safari.
   </script>
 </body>
 </html>
