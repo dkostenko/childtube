@@ -85,10 +85,7 @@
     }
     .control-btn:active { transform: scale(0.95); }
     .control-btn:hover { background: #3a7bc8; }
-    /* Иконки (можно заменить на SVG при желании) */
-    #play-pause-btn::before {
-      content: "⏸"; /* по умолчанию пауза, меняется из JS */
-    }
+    /* Иконка для полноэкранной кнопки (оставлена) */
     #fullscreen-btn::before {
       content: "⛶";
     }
@@ -151,6 +148,7 @@
       { id: '29BV6Uk7grs', title: 'Учим машины и транспорт для детей. Все машинки для мальчиков' },
       { id: '19IkKrb1Nuo', title: 'Изучаем цвета и машинки для детей. Развивающее видео для самых маленьких' },
       { id: 'jIg7pY9Wsw4', title: 'Транспорт и звуки для детей. Первые слова' },
+      { id: 'mu8w6g4TpDc', title: 'Машинки и служебный транспорт для детей. Учим звуки и первые слова' },
       // Добавьте сколько угодно строк
     ];
     // ============================================================
@@ -191,13 +189,13 @@
         height: '100%',
         width: '100%',
         playerVars: {
-          controls: 0,        // скрыть все контролы YouTube
-          rel: 0,             // не показывать похожие видео в конце
-          modestbranding: 1,  // минимальный брендинг
-          playsinline: 0,     // <-- ИЗМЕНЕНО: разрешаем полноэкранный режим
-          disablekb: 1,       // отключить клавиатуру
-          iv_load_policy: 3,  // скрыть аннотации
-          fs: 1,              // разрешить полноэкранный режим (для нашей кнопки)
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 0,
+          disablekb: 1,
+          iv_load_policy: 3,
+          fs: 1,
         },
         events: {
           onReady: function(event) {
@@ -219,7 +217,6 @@
     function updatePlayPauseIcon() {
       if (!player || !player.getPlayerState) return;
       const state = player.getPlayerState();
-      // 1 = воспроизводится, 2 = пауза, 0 = завершено, 5 = буфер
       if (state === 1) {
         playPauseBtn.innerHTML = '⏸';
       } else {
@@ -246,18 +243,15 @@
       }
 
       try {
-        // Пытаемся использовать YouTube API
         if (player.m && typeof player.m.getFullscreen === 'function') {
           player.m.getFullscreen();
           return;
         }
-        // Fallback для Safari/iOS
         const iframe = player.getIframe();
         if (iframe.webkitEnterFullscreen) {
           iframe.webkitEnterFullscreen();
           return;
         }
-        // Если ничего не сработало – сообщаем
         alert('Полноэкранный режим не поддерживается.');
       } catch (e) {
         alert('Ошибка: ' + e.message);
